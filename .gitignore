@@ -1,0 +1,42 @@
+# =============================================================================
+# Pharos Sentinel — secret safety first.
+# NEVER commit private keys or real env files. evidence/ IS tracked on purpose.
+# =============================================================================
+
+# --- Secrets (blocked) ---
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# --- Dependencies / builds ---
+node_modules/
+.next/
+out/
+dist/
+.build/
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# --- Runtime agent state (regenerated deterministically; committed copies live in evidence/) ---
+.data/*.json
+.data/*.lock
+
+# --- Logs / temp ---
+*.log
+npm-debug.log*
+yarn-error.log*
+.DS_Store
+*.pem
+*.p12
+*.tsbuildinfo
+
+# --- NOTE: `evidence/` and `SUBMISSION_EVIDENCE.md` are INTENTIONALLY TRACKED ---
+!evidence/
+!evidence/**
+!SUBMISSION_EVIDENCE.md
+
+# Vercel CLI metadata
+.vercel/
+

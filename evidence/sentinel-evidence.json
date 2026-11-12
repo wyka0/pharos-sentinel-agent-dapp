@@ -1,0 +1,332 @@
+{
+  "generatedAt": "2026-11-11T22:38:35.348Z",
+  "network": {
+    "chainId": 688689,
+    "name": "Pharos Atlantic Testnet",
+    "explorer": "https://atlantic.pharosscan.xyz",
+    "rpc": "https://atlantic.dplabs-internal.com"
+  },
+  "deployer": "0x299Ce4113abF88F4997737184aa8A7a3D58AC15C",
+  "contracts": {
+    "susdc": "0x3d96d4cc7cd5a0a6d31be15a6d741ca162060c7b",
+    "vaultTBill": "0x001ef1ebebe4167dc0645e33875e9235c7dfaf78",
+    "vaultCredit": "0x28080450b7be3963f55296ea9f2b45ad9af1b720",
+    "vaultHarbor": "0x4ca5d4c42e4f67ab5b3a8946f3f6434cf265ab77",
+    "oracleRegistry": "0x303ab8dbc96b7a5ce175b0096ebcea7656fc189f",
+    "policyFirewall": "0x4bf82bc533befdafa0a0d2154842394b37a40ea1"
+  },
+  "contractLinks": {
+    "susdc": "https://atlantic.pharosscan.xyz/address/0x3d96d4cc7cd5a0a6d31be15a6d741ca162060c7b",
+    "vaultTBill": "https://atlantic.pharosscan.xyz/address/0x001ef1ebebe4167dc0645e33875e9235c7dfaf78",
+    "vaultCredit": "https://atlantic.pharosscan.xyz/address/0x28080450b7be3963f55296ea9f2b45ad9af1b720",
+    "vaultHarbor": "https://atlantic.pharosscan.xyz/address/0x4ca5d4c42e4f67ab5b3a8946f3f6434cf265ab77",
+    "oracleRegistry": "https://atlantic.pharosscan.xyz/address/0x303ab8dbc96b7a5ce175b0096ebcea7656fc189f",
+    "policyFirewall": "https://atlantic.pharosscan.xyz/address/0x4bf82bc533befdafa0a0d2154842394b37a40ea1"
+  },
+  "scenarios": {
+    "s1": {
+      "name": "4-Tool Discovery & x402 Reserve Audit",
+      "steps": [
+        {
+          "tool": "ChainMCP",
+          "call": "pharos_get_vault_states",
+          "latencyMs": 3312,
+          "ok": true,
+          "blockPinned": 32645043,
+          "healthy": [
+            "tbill",
+            "credit",
+            "harbor"
+          ],
+          "isolated": []
+        },
+        {
+          "tool": "ChainMCP",
+          "call": "pharos_get_policy_config",
+          "ok": true
+        },
+        {
+          "tool": "DocsMCP",
+          "call": "pharos_docs_lookup_spec + verify_abi_invariants",
+          "citations": [
+            "docs.pharos.xyz / network directory (Atlantic Testnet)",
+            "eips.ethereum.org/EIPS/eip-4626"
+          ],
+          "erc4626": {
+            "passed": 4,
+            "total": 4
+          },
+          "network": {
+            "passed": 2,
+            "total": 2
+          },
+          "ok": true
+        },
+        {
+          "tool": "X402",
+          "call": "HTTP 402 â†’ ROI gate â†’ EIP-3009 signature â†’ 200",
+          "latencyMs": 281,
+          "attempts": 2,
+          "roiCheck": {
+            "expectedYieldDelta": "50000",
+            "feeCost": "25000",
+            "passed": true
+          },
+          "receiptHash": "0x4906502e00e0c22d4f7832aef0dd5bc4fb33ba695704bafcfed2a1fcf83abbea",
+          "attestation": {
+            "provider": "CreditDefaultRiskFeed",
+            "vault": "0x28080450b7be3963f55296ea9f2b45ad9af1b720",
+            "vaultLabel": "Atlantic Senior Private Credit Pool",
+            "collateralRatioBps": 10240,
+            "navPerShare": "1000000",
+            "auditHash": "0x6bf6c0c92a7ea4d3ee95c7ff6ed059562db432b360f6238fdcf22ee9602e7483",
+            "attestedAt": 1794436719,
+            "chainId": 688689,
+            "feePaid": "25000",
+            "serverSignature": "97a01a17ee81c77c18ab624b2bd6ce8cead33700738fe559086c4ad816a213d4"
+          },
+          "providerEndpoint": "/api/x402/attestation?vault=credit"
+        },
+        {
+          "tool": "X402",
+          "call": "SentinelX402OracleRegistry.recordAttestation",
+          "tx": "0xa075984ea97d030c8e08531a6731a6daac3f4ceea8b14df29255121f014ad78b",
+          "txLink": "https://atlantic.pharosscan.xyz/tx/0xa075984ea97d030c8e08531a6731a6daac3f4ceea8b14df29255121f014ad78b"
+        },
+        {
+          "tool": "X402",
+          "call": "audit-informed utilization refresh",
+          "tx": "0xcd2046fec7e512abeb23a4efdb894520930fc49913d9a0daa7984fccae260d33",
+          "txLink": "https://atlantic.pharosscan.xyz/tx/0xcd2046fec7e512abeb23a4efdb894520930fc49913d9a0daa7984fccae260d33"
+        },
+        {
+          "tool": "SkillEngine",
+          "call": "HorizonNetYieldRouterSkill",
+          "deposit": "2500 sUSDC",
+          "horizonDays": 30,
+          "ranking": [
+            {
+              "id": "tbill",
+              "eligible": true,
+              "netReturn": "16745175",
+              "netApyBps": "814"
+            },
+            {
+              "id": "credit",
+              "eligible": true,
+              "netReturn": "17161212",
+              "netApyBps": "835"
+            },
+            {
+              "id": "harbor",
+              "eligible": true,
+              "netReturn": "13946477",
+              "netApyBps": "678"
+            }
+          ],
+          "winner": "credit",
+          "ok": true
+        }
+      ]
+    },
+    "s2": {
+      "name": "Policy-Guarded Optimal RWA Allocation",
+      "steps": [
+        {
+          "step": "approve",
+          "tx": "0x27305b7efa9f4cdcc51267b5b694bfa6eaec7fd5d798ec6057d86b5a93007346",
+          "txLink": "https://atlantic.pharosscan.xyz/tx/0x27305b7efa9f4cdcc51267b5b694bfa6eaec7fd5d798ec6057d86b5a93007346"
+        },
+        {
+          "step": "pre-flight",
+          "mirrorPassed": true,
+          "guards": [
+            {
+              "guard": "G1_KILL_SWITCH",
+              "passed": true,
+              "detail": "emergencyPaused(user)=false emergencyPaused(agent)=false"
+            },
+            {
+              "guard": "G2_SPEND_CAP",
+              "passed": true,
+              "detail": "amount 2500000000 vs maxPerTxSpend 5000000000"
+            },
+            {
+              "guard": "G3_VAULT_WHITELIST",
+              "passed": true,
+              "detail": "vault 0x28080450b7be3963f55296ea9f2b45ad9af1b720 whitelisted=true paused=false"
+            },
+            {
+              "guard": "G4_X402_ATTESTATION",
+              "passed": true,
+              "detail": "x402ReceiptHash=0x4906502e00e0c22d4f7832aef0dd5bc4fb33ba695704bafcfed2a1fcf83abbea"
+            },
+            {
+              "guard": "G5_SLIPPAGE",
+              "passed": true,
+              "detail": "quotedShares 2497000000 vs minSharesOut 2497000000 (maxSlippageBps 30)"
+            }
+          ],
+          "chainSimulate": {
+            "ok": true,
+            "failReason": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "failReasonLabel": "NONE"
+          }
+        }
+      ],
+      "agentIntentDigest": "0x2915082ef617fd2ab9b5c786307f5ca8a22459911853026fa3e2e411ad64ed7e",
+      "x402ReceiptHash": "0x4906502e00e0c22d4f7832aef0dd5bc4fb33ba695704bafcfed2a1fcf83abbea",
+      "execution": {
+        "tx": "0x55f438120b424bd481eb606be614d4346e8a851c57d290dcb740a9856ff5ebda",
+        "txLink": "https://atlantic.pharosscan.xyz/tx/0x55f438120b424bd481eb606be614d4346e8a851c57d290dcb740a9856ff5ebda",
+        "blockNumber": 32645059,
+        "gasUsed": "200191",
+        "event": {
+          "user": "0x299Ce4113abF88F4997737184aa8A7a3D58AC15C",
+          "vault": "0x28080450b7be3963f55296Ea9F2B45AD9Af1B720",
+          "amount": "2500000000",
+          "sharesOut": "2497000000",
+          "x402ReceiptHash": "0x4906502e00e0c22d4f7832aef0dd5bc4fb33ba695704bafcfed2a1fcf83abbea",
+          "agentIntentDigest": "0x2915082ef617fd2ab9b5c786307f5ca8a22459911853026fa3e2e411ad64ed7e"
+        },
+        "receiptMatch": true,
+        "digestMatch": true
+      }
+    },
+    "s3": {
+      "name": "On-Chain Policy Firewall Block Proof",
+      "steps": [],
+      "chainSimulate": {
+        "ok": false,
+        "failReason": "0x5b88ddff7baa793dcb965e0ee07cf3d2064acbbc9245b4d2c0070741fc484efd",
+        "failReasonLabel": "ExceedsPolicySpendCap"
+      },
+      "mirror": {
+        "passed": false,
+        "failing": [
+          "ExceedsPolicySpendCap"
+        ]
+      },
+      "revertProof": {
+        "reverted": true,
+        "revertError": "The contract function \"executeGuardedAllocation\" reverted.",
+        "expectedError": "ExceedsPolicySpendCap(uint256,uint256)",
+        "fundsMoved": "0",
+        "balanceUnchanged": true
+      }
+    },
+    "s4": {
+      "name": "SkillEngine Stateful Trend Guard",
+      "steps": [],
+      "spikeScenario": {
+        "window": [
+          "100",
+          "93",
+          "100"
+        ],
+        "verdict": "SPIKE_REJECTED",
+        "transactions": 0
+      },
+      "trendScenario": {
+        "window": [
+          "100",
+          "98",
+          "95",
+          "92"
+        ],
+        "verdict": "TREND_CONFIRMED",
+        "recommendation": "REBALANCE_TO_TBILL"
+      },
+      "rebalance": {
+        "from": "credit",
+        "to": "tbill",
+        "sharesIn": "2497000000",
+        "assetsOut": "2494753700",
+        "tx": "0x835fcc7e22eb37fd27d1cd79e5f301f15131ea68a2984d0c74e423e070c5bc81",
+        "txLink": "https://atlantic.pharosscan.xyz/tx/0x835fcc7e22eb37fd27d1cd79e5f301f15131ea68a2984d0c74e423e070c5bc81",
+        "blockNumber": 32645072,
+        "eventEmitted": true
+      }
+    },
+    "s5": {
+      "name": "Vault Outage Fault-Isolation Failover",
+      "steps": [
+        {
+          "step": "pause Harbor",
+          "tx": "0xb920a9eaa45d2e981c2974e47159a85d0c15c91b193cae306a48d6f377801f7e",
+          "txLink": "https://atlantic.pharosscan.xyz/tx/0xb920a9eaa45d2e981c2974e47159a85d0c15c91b193cae306a48d6f377801f7e"
+        },
+        {
+          "step": "restore Harbor",
+          "tx": "0xf53180616be53f418ca8527eb6c83d74c0744617cc6ca253bf4d844a96cc62e5",
+          "txLink": "https://atlantic.pharosscan.xyz/tx/0xf53180616be53f418ca8527eb6c83d74c0744617cc6ca253bf4d844a96cc62e5"
+        }
+      ],
+      "afterOutage": {
+        "isolatedVaults": [
+          "harbor"
+        ],
+        "healthyVaults": [
+          "tbill",
+          "credit"
+        ]
+      },
+      "routing": {
+        "winner": "credit",
+        "excludedHarbor": "vault paused (fault-isolation circuit breaker active)",
+        "notes": [
+          "1 venue(s) isolated by circuit breaker and excluded from routing"
+        ]
+      },
+      "afterRestore": {
+        "isolatedVaults": [],
+        "healthyVaults": [
+          "tbill",
+          "credit",
+          "harbor"
+        ]
+      }
+    }
+  },
+  "gasUsedTotal": "798382",
+  "phrsBalanceAfter": "0.041143393",
+  "seed": {
+    "seededAt": "2026-11-12T01:21:43.750Z",
+    "baselineLiquidity": {
+      "vaultTBill": "6000 sUSDC",
+      "vaultCredit": "8000 sUSDC",
+      "vaultHarbor": "5000 sUSDC"
+    },
+    "yieldReserveTopUps": {
+      "vaultTBill": "2000 sUSDC",
+      "vaultCredit": "3000 sUSDC",
+      "vaultHarbor": "1500 sUSDC"
+    },
+    "utilizationBps": {
+      "vaultCredit": 4200
+    },
+    "postSeed": [
+      {
+        "vault": "PharosTBillRwaVault",
+        "totalAssets": "8494816451",
+        "totalSupply": "8497008032",
+        "navPerShare": "0.999742",
+        "effectiveApyBps": "815"
+      },
+      {
+        "vault": "AtlanticSeniorCreditVault",
+        "totalAssets": "8001313608",
+        "totalSupply": "8000000000",
+        "navPerShare": "1.000164",
+        "effectiveApyBps": "438"
+      },
+      {
+        "vault": "HarborBufferLendingPool",
+        "totalAssets": "5000000070",
+        "totalSupply": "5000000000",
+        "navPerShare": "1.000000",
+        "effectiveApyBps": "740"
+      }
+    ]
+  }
+}
